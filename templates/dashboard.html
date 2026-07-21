@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-number">{{ client_count }}</div>
+    <div class="stat-label">Clients</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ project_count }}</div>
+    <div class="stat-label">Projects</div>
+  </div>
+</div>
+
+<h2>Recent projects</h2>
+{% if recent_projects %}
+<table class="data-table">
+  <thead>
+    <tr><th>Project</th><th>Client</th><th>Assigned to</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    {% for p in recent_projects %}
+    <tr>
+      <td><a href="{{ url_for('edit_project', project_id=p.id) }}">{{ p.name }}</a></td>
+      <td>{{ p.client.name }}</td>
+      <td>{{ p.assigned_to.username if p.assigned_to else '—' }}</td>
+      <td><span class="status-pill status-{{ p.status|replace(' ', '-')|lower }}">{{ p.status }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state">No projects yet. <a href="{{ url_for('new_project') }}">Create your first project</a>.</p>
+{% endif %}
+{% endblock %}

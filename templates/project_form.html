@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if project else 'New' }} Project{% endblock %}
+{% block content %}
+<h1>{{ 'Edit project' if project else 'New project' }}</h1>
+
+{% if clients %}
+<form method="POST" class="form-card">
+  <label>Project name</label>
+  <input type="text" name="name" required value="{{ project.name if project else '' }}">
+
+  <label>Client</label>
+  <select name="client_id" required>
+    <option value="" disabled {{ 'selected' if not project else '' }}>Select a client</option>
+    {% for c in clients %}
+    <option value="{{ c.id }}" {{ 'selected' if project and project.client_id == c.id else '' }}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Assigned to</label>
+  <select name="assigned_to_id">
+    <option value="">Unassigned</option>
+    {% for u in users %}
+    <option value="{{ u.id }}" {{ 'selected' if project and project.assigned_to_id == u.id else '' }}>{{ u.username }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Status</label>
+  <select name="status">
+    {% for s in statuses %}
+    <option value="{{ s }}" {{ 'selected' if project and project.status == s else '' }}>{{ s }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Due date</label>
+  <input type="date" name="due_date" value="{{ project.due_date.strftime('%Y-%m-%d') if project and project.due_date else '' }}">
+
+  <label>Description</label>
+  <textarea name="description" rows="4">{{ project.description if project else '' }}</textarea>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">{{ 'Save changes' if project else 'Add project' }}</button>
+    <a href="{{ url_for('projects') }}" class="btn-link">Cancel</a>
+  </div>
+</form>
+{% else %}
+<p class="empty-state">You need at least one client before creating a project. <a href="{{ url_for('new_client') }}">Add a client first</a>.</p>
+{% endif %}
+{% endblock %}
