@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if prospect else 'New' }} Prospect{% endblock %}
+{% block content %}
+<h1>{{ 'Edit prospect' if prospect else 'New prospect' }}</h1>
+
+<form method="POST" class="form-card">
+  <label>Name</label>
+  <input type="text" name="name" required value="{{ prospect.name if prospect else '' }}" placeholder="e.g. First Baptist Church or Jane Smith">
+
+  <label>Type</label>
+  <select name="prospect_type">
+    {% for t in types %}
+    <option value="{{ t }}" {{ 'selected' if prospect and prospect.prospect_type == t else '' }}>{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Contact name</label>
+  <input type="text" name="contact_name" value="{{ prospect.contact_name if prospect else '' }}">
+
+  <label>Contact email</label>
+  <input type="email" name="contact_email" value="{{ prospect.contact_email if prospect else '' }}">
+
+  <label>Contact phone</label>
+  <input type="text" name="contact_phone" value="{{ prospect.contact_phone if prospect else '' }}">
+
+  <label>Status</label>
+  <select name="status">
+    {% for s in statuses %}
+    <option value="{{ s }}" {{ 'selected' if prospect and prospect.status == s else '' }}>{{ s }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Assigned to</label>
+  <select name="assigned_to_id">
+    <option value="">Unassigned</option>
+    {% for u in users %}
+    <option value="{{ u.id }}" {{ 'selected' if prospect and prospect.assigned_to_id == u.id else '' }}>{{ u.username }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Notes</label>
+  <textarea name="notes" rows="4">{{ prospect.notes if prospect else '' }}</textarea>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">{{ 'Save changes' if prospect else 'Add prospect' }}</button>
+    <a href="{{ url_for('prospects') }}" class="btn-link">Cancel</a>
+    {% if prospect and not prospect.converted_client_id %}
+    <form method="POST" action="{{ url_for('convert_prospect', prospect_id=prospect.id) }}" onsubmit="return confirm('Convert {{ prospect.name }} to a client?');" style="display:inline;">
+      <button type="submit" class="btn-link">Convert to client</button>
+    </form>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

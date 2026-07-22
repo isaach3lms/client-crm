@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if entry else 'New' }} Entry{% endblock %}
+{% block content %}
+<h1>{{ 'Edit entry' if entry else 'New entry' }}</h1>
+
+<form method="POST" class="form-card">
+  <label>Type</label>
+  <select name="entry_type">
+    {% for t in entry_types %}
+    <option value="{{ t }}" {{ 'selected' if entry and entry.entry_type == t else '' }}>{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Amount ($)</label>
+  <input type="number" step="0.01" min="0" name="amount" required value="{{ entry.amount if entry else '' }}">
+
+  <label>Date</label>
+  <input type="date" name="entry_date" required value="{{ entry.entry_date.strftime('%Y-%m-%d') if entry else '' }}">
+
+  <label>Category</label>
+  <input type="text" name="category" placeholder="e.g. Software, Consulting, Travel" value="{{ entry.category if entry else '' }}">
+
+  <label>Description</label>
+  <textarea name="description" rows="3">{{ entry.description if entry else '' }}</textarea>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">{{ 'Save changes' if entry else 'Add entry' }}</button>
+    <a href="{{ url_for('finances') }}" class="btn-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

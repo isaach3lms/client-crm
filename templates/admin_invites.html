@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Invites{% endblock %}
+{% block content %}
+<h1>Invites</h1>
+
+<form method="POST" class="form-card" style="margin-bottom:32px;">
+  <label>Email (optional, just for your reference)</label>
+  <input type="email" name="email" placeholder="teammate@example.com">
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">Generate invite link</button>
+  </div>
+</form>
+
+<h2>Pending invites</h2>
+{% if pending %}
+<table class="data-table">
+  <thead><tr><th>Email</th><th>Link</th><th>Created</th><th></th></tr></thead>
+  <tbody>
+    {% for i in pending %}
+    <tr>
+      <td>{{ i.email or '—' }}</td>
+      <td><code class="invite-link">{{ request.host_url.rstrip('/') }}{{ url_for('register', token=i.token) }}</code></td>
+      <td>{{ i.created_at.strftime('%b %d, %Y') }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('revoke_invite', invite_id=i.id) }}" onsubmit="return confirm('Revoke this invite?');">
+          <button type="submit" class="btn-link btn-danger">Revoke</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state">No pending invites.</p>
+{% endif %}
+
+<h2>Used invites</h2>
+{% if used %}
+<table class="data-table">
+  <thead><tr><th>Email</th><th>Created</th></tr></thead>
+  <tbody>
+    {% for i in used %}
+    <tr><td>{{ i.email or '—' }}</td><td>{{ i.created_at.strftime('%b %d, %Y') }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state">No used invites yet.</p>
+{% endif %}
+{% endblock %}

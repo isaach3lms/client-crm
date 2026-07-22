@@ -3,7 +3,11 @@
 {% block content %}
 <div class="auth-card">
   <h1>Create account</h1>
+  {% if is_first_user %}
+  <p class="auth-alt" style="margin-top:0;">You're creating the first account, which becomes the admin account.</p>
+  {% endif %}
   <form method="POST">
+    <input type="hidden" name="token" value="{{ token }}">
     <label>Username</label>
     <input type="text" name="username" required autofocus>
 

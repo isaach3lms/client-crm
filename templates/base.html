@@ -13,7 +13,14 @@
     <div class="navbar-links">
       <a href="{{ url_for('dashboard') }}">Dashboard</a>
       <a href="{{ url_for('clients') }}">Clients</a>
+      <a href="{{ url_for('prospects') }}">Prospects</a>
       <a href="{{ url_for('projects') }}">Projects</a>
+      <a href="{{ url_for('deals') }}">Deals</a>
+      <a href="{{ url_for('finances') }}">Finances</a>
+      {% if current_user.is_admin %}
+      <a href="{{ url_for('admin_invites') }}">Invites</a>
+      <a href="{{ url_for('admin_users') }}">Users</a>
+      {% endif %}
     </div>
     <div class="navbar-user">
       <span>{{ current_user.username }}</span>

@@ -9,8 +9,36 @@
     <div class="stat-label">Clients</div>
   </div>
   <div class="stat-card">
+    <div class="stat-number">{{ prospect_count }}</div>
+    <div class="stat-label">Active prospects</div>
+  </div>
+  <div class="stat-card">
     <div class="stat-number">{{ project_count }}</div>
     <div class="stat-label">Projects</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">${{ "%.2f"|format(pipeline_value) }}</div>
+    <div class="stat-label">Open pipeline ({{ open_deals_count }})</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ won_deals_count }}</div>
+    <div class="stat-label">Deals won</div>
+  </div>
+</div>
+
+<h2>Finances</h2>
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-number stat-positive">${{ "%.2f"|format(income_total) }}</div>
+    <div class="stat-label">Total income</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number stat-negative">${{ "%.2f"|format(expense_total) }}</div>
+    <div class="stat-label">Total expenses</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number {{ 'stat-positive' if net_total >= 0 else 'stat-negative' }}">${{ "%.2f"|format(net_total) }}</div>
+    <div class="stat-label">Net</div>
   </div>
 </div>
 

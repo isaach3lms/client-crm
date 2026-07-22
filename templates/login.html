@@ -12,6 +12,10 @@
 
     <button type="submit" class="btn-primary">Log in</button>
   </form>
-  <p class="auth-alt">No account yet? <a href="{{ url_for('register') }}">Register</a></p>
+  {% if no_users_yet %}
+  <p class="auth-alt">No accounts exist yet. <a href="{{ url_for('register') }}">Create the first (admin) account</a>.</p>
+  {% else %}
+  <p class="auth-alt">New here? Ask an admin to send you an invite link.</p>
+  {% endif %}
 </div>
 {% endblock %}

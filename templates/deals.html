@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Deals{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Sales pipeline</h1>
+  <a href="{{ url_for('new_deal') }}" class="btn-primary">+ New deal</a>
+</div>
+
+<div class="pipeline-board">
+  {% for stage in stages %}
+  <div class="pipeline-column">
+    <div class="pipeline-column-header stage-{{ stage|lower }}">
+      {{ stage }} <span class="pipeline-count">{{ grouped[stage]|length }}</span>
+    </div>
+    {% for d in grouped[stage] %}
+    <a class="deal-card" href="{{ url_for('edit_deal', deal_id=d.id) }}">
+      <div class="deal-card-name">{{ d.name }}</div>
+      <div class="deal-card-client">{{ d.client.name }}</div>
+      <div class="deal-card-value">${{ "%.2f"|format(d.value or 0) }}</div>
+      {% if d.owner %}<div class="deal-card-owner">{{ d.owner.username }}</div>{% endif %}
+    </a>
+    {% else %}
+    <p class="empty-state-small">No deals here yet.</p>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

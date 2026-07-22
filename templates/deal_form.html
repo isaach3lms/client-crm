@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if deal else 'New' }} Deal{% endblock %}
+{% block content %}
+<h1>{{ 'Edit deal' if deal else 'New deal' }}</h1>
+
+{% if clients %}
+<form method="POST" class="form-card">
+  <label>Deal name</label>
+  <input type="text" name="name" required value="{{ deal.name if deal else '' }}">
+
+  <label>Client</label>
+  <select name="client_id" required>
+    <option value="" disabled {{ 'selected' if not deal else '' }}>Select a client</option>
+    {% for c in clients %}
+    <option value="{{ c.id }}" {{ 'selected' if deal and deal.client_id == c.id else '' }}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Stage</label>
+  <select name="stage">
+    {% for s in stages %}
+    <option value="{{ s }}" {{ 'selected' if deal and deal.stage == s else '' }}>{{ s }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Deal value ($)</label>
+  <input type="number" step="0.01" min="0" name="value" value="{{ deal.value if deal else '0' }}">
+
+  <label>Owner</label>
+  <select name="owner_id">
+    <option value="">Unassigned</option>
+    {% for u in users %}
+    <option value="{{ u.id }}" {{ 'selected' if deal and deal.owner_id == u.id else '' }}>{{ u.username }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Expected close date</label>
+  <input type="date" name="expected_close_date" value="{{ deal.expected_close_date.strftime('%Y-%m-%d') if deal and deal.expected_close_date else '' }}">
+
+  <label>Notes</label>
+  <textarea name="notes" rows="4">{{ deal.notes if deal else '' }}</textarea>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">{{ 'Save changes' if deal else 'Add deal' }}</button>
+    <a href="{{ url_for('deals') }}" class="btn-link">Cancel</a>
+    {% if deal %}
+    <form method="POST" action="{{ url_for('delete_deal', deal_id=deal.id) }}" onsubmit="return confirm('Delete this deal?');" style="display:inline;">
+      <button type="submit" class="btn-link btn-danger">Delete</button>
+    </form>
+    {% endif %}
+  </div>
+</form>
+{% else %}
+<p class="empty-state">You need at least one client before creating a deal. <a href="{{ url_for('new_client') }}">Add a client first</a>.</p>
+{% endif %}
+{% endblock %}
