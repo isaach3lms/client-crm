@@ -4,32 +4,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}CRM{% endblock %} · Between Sundays</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="{{ 'authed' if current_user.is_authenticated else 'guest' }}">
   {% if current_user.is_authenticated %}
-  <nav class="navbar">
-    <div class="navbar-brand">Between Sundays <span>CRM</span></div>
-    <div class="navbar-links">
-      <a href="{{ url_for('dashboard') }}">Dashboard</a>
-      <a href="{{ url_for('clients') }}">Clients</a>
-      <a href="{{ url_for('prospects') }}">Prospects</a>
-      <a href="{{ url_for('projects') }}">Projects</a>
-      <a href="{{ url_for('deals') }}">Deals</a>
-      <a href="{{ url_for('finances') }}">Finances</a>
-      {% if current_user.is_admin %}
-      <a href="{{ url_for('admin_invites') }}">Invites</a>
-      <a href="{{ url_for('admin_users') }}">Users</a>
-      {% endif %}
-    </div>
-    <div class="navbar-user">
-      <span>{{ current_user.username }}</span>
-      <a href="{{ url_for('logout') }}" class="btn-link">Log out</a>
-    </div>
-  </nav>
-  {% endif %}
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark">BS</span>
+        <span class="brand-text">Between Sundays</span>
+      </div>
 
-  <main class="container">
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('clients') }}" class="nav-item {{ 'active' if request.endpoint in ['clients','new_client','edit_client'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Clients</span>
+        </a>
+        <a href="{{ url_for('prospects') }}" class="nav-item {{ 'active' if request.endpoint in ['prospects','new_prospect','edit_prospect'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+          <span>Prospects</span>
+        </a>
+        <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint in ['projects','new_project','edit_project'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+          <span>Projects</span>
+        </a>
+        <a href="{{ url_for('deals') }}" class="nav-item {{ 'active' if request.endpoint in ['deals','new_deal','edit_deal'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8.7 13 14.4l-3.5-3.5L4 16.4"/></svg>
+          <span>Deals</span>
+        </a>
+        <a href="{{ url_for('finances') }}" class="nav-item {{ 'active' if request.endpoint in ['finances','new_finance_entry','edit_finance_entry'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2 3 2.5 3 1.1 3 2.5-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
+          <span>Finances</span>
+        </a>
+
+        {% if current_user.is_admin %}
+        <div class="nav-divider">Admin</div>
+        <a href="{{ url_for('admin_invites') }}" class="nav-item {{ 'active' if request.endpoint == 'admin_invites' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <span>Invites</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item {{ 'active' if request.endpoint in ['admin_users','toggle_admin'] }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 21a8.5 8.5 0 0 0-17 0"/><circle cx="12" cy="8" r="5"/></svg>
+          <span>Users</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
+          <span class="user-name">{{ current_user.username }}</span>
+        </div>
+        <a href="{{ url_for('logout') }}" class="nav-item logout-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>Log out</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  {% else %}
+  <main class="container auth-container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -37,8 +91,8 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-
-    {% block content %}{% endblock %}
+    {% block content_guest %}{{ self.content() }}{% endblock %}
   </main>
+  {% endif %}
 </body>
 </html>
