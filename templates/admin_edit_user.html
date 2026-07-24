@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ user.username }}{% endblock %}
+{% block content %}
+<h1>Edit {{ user.username }}</h1>
+
+<form method="POST" class="form-card">
+  <label>Username</label>
+  <input type="text" name="username" required value="{{ user.username }}">
+
+  <label>Email</label>
+  <input type="email" name="email" required value="{{ user.email }}">
+
+  <label>Reset password</label>
+  <input type="password" name="new_password" placeholder="Leave blank to keep their current password" minlength="6">
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">Save changes</button>
+    <a href="{{ url_for('admin_users') }}" class="btn-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

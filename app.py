@@ -8,13 +8,11 @@ from flask_login import (
     LoginManager, login_user, logout_user, login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
 
-from models import db, User, Client, Project, Invite, Deal, LedgerEntry, Prospect
+from models import db, User, Client, Project, Invite, Deal, Prospect, ChatMessage
 
 STATUS_CHOICES = ["Not Started", "In Progress", "On Hold", "Completed"]
 STAGE_CHOICES = ["Lead", "Proposal", "Won", "Lost"]
-ENTRY_TYPES = ["Income", "Expense"]
 PROSPECT_STATUS_CHOICES = ["New", "Contacted", "Interested", "Not Interested", "Converted"]
 PROSPECT_TYPE_CHOICES = ["Church", "Person"]
 
@@ -146,10 +144,6 @@ def create_app():
         pipeline_value = sum((d.value or 0) for d in open_deals)
         won_deals_count = Deal.query.filter_by(stage="Won").count()
 
-        income_total = db.session.query(func.coalesce(func.sum(LedgerEntry.amount), 0)).filter_by(entry_type="Income").scalar()
-        expense_total = db.session.query(func.coalesce(func.sum(LedgerEntry.amount), 0)).filter_by(entry_type="Expense").scalar()
-        net_total = float(income_total) - float(expense_total)
-
         return render_template(
             "dashboard.html",
             client_count=client_count,
@@ -159,9 +153,6 @@ def create_app():
             open_deals_count=len(open_deals),
             pipeline_value=pipeline_value,
             won_deals_count=won_deals_count,
-            income_total=income_total,
-            expense_total=expense_total,
-            net_total=net_total,
         )
 
     # ---------- Clients ----------
@@ -432,66 +423,6 @@ def create_app():
         flash("Deal deleted.", "success")
         return redirect(url_for("deals"))
 
-    # ---------- Finances (income / expense ledger) ----------
-    @app.route("/finances")
-    @login_required
-    def finances():
-        entries = LedgerEntry.query.order_by(LedgerEntry.entry_date.desc()).all()
-        income_total = sum(float(e.amount) for e in entries if e.entry_type == "Income")
-        expense_total = sum(float(e.amount) for e in entries if e.entry_type == "Expense")
-        net_total = income_total - expense_total
-        return render_template(
-            "finances.html",
-            entries=entries,
-            income_total=income_total,
-            expense_total=expense_total,
-            net_total=net_total,
-        )
-
-    @app.route("/finances/new", methods=["GET", "POST"])
-    @login_required
-    def new_finance_entry():
-        if request.method == "POST":
-            entry_date = request.form.get("entry_date") or datetime.utcnow().strftime("%Y-%m-%d")
-            entry = LedgerEntry(
-                entry_type=request.form.get("entry_type", "Income"),
-                amount=float(request.form["amount"]),
-                category=request.form.get("category", "").strip(),
-                description=request.form.get("description", "").strip(),
-                entry_date=datetime.strptime(entry_date, "%Y-%m-%d").date(),
-                created_by_id=current_user.id,
-            )
-            db.session.add(entry)
-            db.session.commit()
-            flash("Entry added.", "success")
-            return redirect(url_for("finances"))
-        return render_template("finance_form.html", entry=None, entry_types=ENTRY_TYPES)
-
-    @app.route("/finances/<int:entry_id>/edit", methods=["GET", "POST"])
-    @login_required
-    def edit_finance_entry(entry_id):
-        entry = db.session.get(LedgerEntry, entry_id) or _abort_404()
-        if request.method == "POST":
-            entry_date = request.form.get("entry_date") or datetime.utcnow().strftime("%Y-%m-%d")
-            entry.entry_type = request.form.get("entry_type", "Income")
-            entry.amount = float(request.form["amount"])
-            entry.category = request.form.get("category", "").strip()
-            entry.description = request.form.get("description", "").strip()
-            entry.entry_date = datetime.strptime(entry_date, "%Y-%m-%d").date()
-            db.session.commit()
-            flash("Entry updated.", "success")
-            return redirect(url_for("finances"))
-        return render_template("finance_form.html", entry=entry, entry_types=ENTRY_TYPES)
-
-    @app.route("/finances/<int:entry_id>/delete", methods=["POST"])
-    @login_required
-    def delete_finance_entry(entry_id):
-        entry = db.session.get(LedgerEntry, entry_id) or _abort_404()
-        db.session.delete(entry)
-        db.session.commit()
-        flash("Entry deleted.", "success")
-        return redirect(url_for("finances"))
-
     # ---------- Admin: invites & users ----------
     @app.route("/admin/invites", methods=["GET", "POST"])
     @login_required
@@ -526,6 +457,30 @@ def create_app():
         all_users = User.query.order_by(User.username).all()
         return render_template("admin_users.html", users=all_users)
 
+    @app.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def admin_edit_user(user_id):
+        user = db.session.get(User, user_id) or _abort_404()
+        if request.method == "POST":
+            new_username = request.form["username"].strip()
+            existing = User.query.filter(User.username == new_username, User.id != user.id).first()
+            if existing:
+                flash("That username is already taken.", "error")
+                return redirect(url_for("admin_edit_user", user_id=user.id))
+
+            user.username = new_username
+            user.email = request.form["email"].strip()
+
+            new_password = request.form.get("new_password", "")
+            if new_password:
+                user.password_hash = generate_password_hash(new_password)
+
+            db.session.commit()
+            flash(f"Updated {user.username}.", "success")
+            return redirect(url_for("admin_users"))
+        return render_template("admin_edit_user.html", user=user)
+
     @app.route("/admin/users/<int:user_id>/toggle-admin", methods=["POST"])
     @login_required
     @admin_required
@@ -538,6 +493,83 @@ def create_app():
         db.session.commit()
         flash(f"Updated admin status for {user.username}.", "success")
         return redirect(url_for("admin_users"))
+
+    # ---------- Profile ----------
+    @app.route("/profile", methods=["GET", "POST"])
+    @login_required
+    def profile():
+        if request.method == "POST":
+            new_username = request.form["username"].strip()
+            new_email = request.form["email"].strip()
+            current_password = request.form.get("current_password", "")
+            new_password = request.form.get("new_password", "")
+
+            existing = User.query.filter(User.username == new_username, User.id != current_user.id).first()
+            if existing:
+                flash("That username is already taken.", "error")
+                return redirect(url_for("profile"))
+
+            current_user.username = new_username
+            current_user.email = new_email
+
+            if new_password:
+                if not check_password_hash(current_user.password_hash, current_password):
+                    flash("Current password is incorrect, so your password wasn't changed. Other changes were saved.", "error")
+                    db.session.commit()
+                    return redirect(url_for("profile"))
+                current_user.password_hash = generate_password_hash(new_password)
+
+            db.session.commit()
+            flash("Profile updated.", "success")
+            return redirect(url_for("profile"))
+
+        return render_template("profile.html")
+
+    # ---------- Chat ----------
+    @app.route("/chat")
+    @login_required
+    def chat():
+        recent = ChatMessage.query.order_by(ChatMessage.created_at.asc()).limit(100).all()
+        return render_template("chat.html", messages=recent)
+
+    @app.route("/chat/messages")
+    @login_required
+    def chat_messages():
+        since_id = request.args.get("since_id", type=int, default=0)
+        msgs = ChatMessage.query.filter(ChatMessage.id > since_id).order_by(ChatMessage.created_at.asc()).limit(200).all()
+        return {
+            "messages": [
+                {
+                    "id": m.id,
+                    "username": m.user.username if m.user else "Deleted user",
+                    "body": m.body,
+                    "created_at": m.created_at.strftime("%b %d, %I:%M %p"),
+                    "is_own": m.user_id == current_user.id,
+                }
+                for m in msgs
+            ]
+        }
+
+    @app.route("/chat/send", methods=["POST"])
+    @login_required
+    def chat_send():
+        if request.is_json:
+            body = (request.json or {}).get("body", "")
+        else:
+            body = request.form.get("body", "")
+        body = (body or "").strip()
+        if not body:
+            return {"error": "Message can't be empty."}, 400
+        msg = ChatMessage(body=body, user_id=current_user.id)
+        db.session.add(msg)
+        db.session.commit()
+        return {
+            "id": msg.id,
+            "username": current_user.username,
+            "body": msg.body,
+            "created_at": msg.created_at.strftime("%b %d, %I:%M %p"),
+            "is_own": True,
+        }
 
     return app
 

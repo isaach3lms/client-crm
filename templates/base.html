@@ -39,9 +39,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8.7 13 14.4l-3.5-3.5L4 16.4"/></svg>
           <span>Deals</span>
         </a>
-        <a href="{{ url_for('finances') }}" class="nav-item {{ 'active' if request.endpoint in ['finances','new_finance_entry','edit_finance_entry'] }}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2 3 2.5 3 1.1 3 2.5-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-          <span>Finances</span>
+        <a href="{{ url_for('chat') }}" class="nav-item {{ 'active' if request.endpoint == 'chat' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+          <span>Chat</span>
         </a>
 
         {% if current_user.is_admin %}
@@ -58,10 +58,10 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div class="user-chip">
+        <a href="{{ url_for('profile') }}" class="user-chip">
           <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
           <span class="user-name">{{ current_user.username }}</span>
-        </div>
+        </a>
         <a href="{{ url_for('logout') }}" class="nav-item logout-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
           <span>Log out</span>

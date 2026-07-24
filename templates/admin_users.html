@@ -12,13 +12,14 @@
       <td>{{ u.email }}</td>
       <td><span class="status-pill {{ 'status-completed' if u.is_admin else 'status-not-started' }}">{{ 'Admin' if u.is_admin else 'Member' }}</span></td>
       <td>{{ u.created_at.strftime('%b %d, %Y') }}</td>
-      <td>
+      <td class="row-actions">
         {% if u.id != current_user.id %}
+        <a href="{{ url_for('admin_edit_user', user_id=u.id) }}">Edit</a>
         <form method="POST" action="{{ url_for('toggle_admin', user_id=u.id) }}">
           <button type="submit" class="btn-link">{{ 'Remove admin' if u.is_admin else 'Make admin' }}</button>
         </form>
         {% else %}
-        <span class="empty-state-small">You</span>
+        <a href="{{ url_for('profile') }}">Edit</a>
         {% endif %}
       </td>
     </tr>

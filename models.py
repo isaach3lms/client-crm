@@ -18,6 +18,17 @@ class User(UserMixin, db.Model):
     projects = db.relationship("Project", back_populates="assigned_to", foreign_keys="Project.assigned_to_id")
 
 
+class ChatMessage(db.Model):
+    __tablename__ = "chat_messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = db.relationship("User", foreign_keys=[user_id])
+
+
 class Invite(db.Model):
     __tablename__ = "invites"
 
@@ -66,20 +77,6 @@ class Deal(db.Model):
 
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     owner = db.relationship("User", foreign_keys=[owner_id])
-
-
-class LedgerEntry(db.Model):
-    __tablename__ = "ledger_entries"
-
-    id = db.Column(db.Integer, primary_key=True)
-    entry_type = db.Column(db.String(10), nullable=False)  # "Income" or "Expense"
-    amount = db.Column(db.Numeric(12, 2), nullable=False)
-    category = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    entry_date = db.Column(db.Date, nullable=False)
-    created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    created_by = db.relationship("User", foreign_keys=[created_by_id])
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Client(db.Model):

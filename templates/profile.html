@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<h1>My profile</h1>
+
+<form method="POST" class="form-card">
+  <label>Username</label>
+  <input type="text" name="username" required value="{{ current_user.username }}">
+
+  <label>Email</label>
+  <input type="email" name="email" required value="{{ current_user.email }}">
+
+  <h2 style="margin-top:24px; font-size:0.9rem;">Change password</h2>
+  <p class="empty-state-small" style="margin:0 0 4px;">Leave these blank to keep your current password.</p>
+
+  <label>Current password</label>
+  <input type="password" name="current_password" autocomplete="current-password">
+
+  <label>New password</label>
+  <input type="password" name="new_password" autocomplete="new-password" minlength="6">
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">Save changes</button>
+    <a href="{{ url_for('dashboard') }}" class="btn-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

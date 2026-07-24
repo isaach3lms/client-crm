@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Team Chat{% endblock %}
+{% block content %}
+<h1>Team chat</h1>
+<p class="empty-state-small" style="margin:0 0 16px;">One shared channel for the whole team.</p>
+
+<div class="chat-panel">
+  <div class="chat-messages" id="chat-messages">
+    {% for m in messages %}
+    <div class="chat-msg {{ 'chat-msg-own' if m.user_id == current_user.id else '' }}" data-id="{{ m.id }}">
+      <div class="chat-msg-meta">
+        <span class="chat-msg-author">{{ m.user.username if m.user else 'Deleted user' }}</span>
+        <span class="chat-msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') }}</span>
+      </div>
+      <div class="chat-msg-bubble">{{ m.body }}</div>
+    </div>
+    {% else %}
+    <p class="empty-state">No messages yet. Say hello to your team.</p>
+    {% endfor %}
+  </div>
+
+  <form id="chat-form" class="chat-input-row">
+    <input type="text" id="chat-input" name="body" placeholder="Message your team..." autocomplete="off" required>
+    <button type="submit" class="btn-primary">Send</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  const messagesEl = document.getElementById('chat-messages');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const currentUsername = {{ current_user.username|tojson }};
+
+  let lastId = 0;
+  document.querySelectorAll('.chat-msg').forEach(function (el) {
+    const id = parseInt(el.dataset.id, 10);
+    if (id > lastId) lastId = id;
+  });
+
+  function scrollToBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function renderMessage(m) {
+    const emptyState = messagesEl.querySelector('.empty-state');
+    if (emptyState) emptyState.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg' + (m.is_own ? ' chat-msg-own' : '');
+    wrap.dataset.id = m.id;
+    wrap.innerHTML =
+      '<div class="chat-msg-meta">' +
+        '<span class="chat-msg-author"></span>' +
+        '<span class="chat-msg-time"></span>' +
+      '</div>' +
+      '<div class="chat-msg-bubble"></div>';
+    wrap.querySelector('.chat-msg-author').textContent = m.username;
+    wrap.querySelector('.chat-msg-time').textContent = m.created_at;
+    wrap.querySelector('.chat-msg-bubble').textContent = m.body;
+    messagesEl.appendChild(wrap);
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch('/chat/messages?since_id=' + lastId);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.messages && data.messages.length) {
+        data.messages.forEach(function (m) {
+          renderMessage(m);
+          if (m.id > lastId) lastId = m.id;
+        });
+        scrollToBottom();
+      }
+    } catch (e) { /* silent retry on next interval */ }
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const body = input.value.trim();
+    if (!body) return;
+    input.value = '';
+    input.disabled = true;
+    try {
+      const res = await fetch('/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: body })
+      });
+      if (res.ok) {
+        const m = await res.json();
+        renderMessage(m);
+        if (m.id > lastId) lastId = m.id;
+        scrollToBottom();
+      }
+    } finally {
+      input.disabled = false;
+      input.focus();
+    }
+  });
+
+  scrollToBottom();
+  setInterval(poll, 4000);
+})();
+</script>
+{% endblock %}

@@ -26,22 +26,6 @@
   </div>
 </div>
 
-<h2>Finances</h2>
-<div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-number stat-positive">${{ "%.2f"|format(income_total) }}</div>
-    <div class="stat-label">Total income</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number stat-negative">${{ "%.2f"|format(expense_total) }}</div>
-    <div class="stat-label">Total expenses</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number {{ 'stat-positive' if net_total >= 0 else 'stat-negative' }}">${{ "%.2f"|format(net_total) }}</div>
-    <div class="stat-label">Net</div>
-  </div>
-</div>
-
 <h2>Recent projects</h2>
 {% if recent_projects %}
 <table class="data-table">
